@@ -1,10 +1,10 @@
     importAirfield(object)
 
-object : an `airport` *object*
+object : an `airfield` *object*
 
-- Accepts an `airport` *object*
+- Accepts an `airfield` *object*
 - Imports an airfield layout background within the editor. 
-- The airport will be unclickable and not available for manipulation. This is done internally by appending a class with `pointer-events:none` CSS styling 
+- The airfield will be unclickable and not available for manipulation. This is done internally by appending a class with `pointer-events:none` CSS styling 
 
 ----------
 
