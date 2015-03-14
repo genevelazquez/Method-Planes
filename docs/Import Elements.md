@@ -1,6 +1,6 @@
 #Import/Export elements and layouts#
 
-This section illustrates the various data structures that are used in the application. Generally JSON style formats are preffered over XML.  
+This section illustrates methods to import/export elements and layouts in and out of the application.  
 
 
 ----------
