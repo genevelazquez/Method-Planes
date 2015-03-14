@@ -1,3 +1,12 @@
+#Import/Export elements and layouts#
+
+This section illustrates the various data structures that are used in the application. Generally JSON style formats are preffered over XML.  
+
+
+----------
+
+## Importing elements ##
+
     importAirfield(object)
 
 object : an `airfield` *object*
