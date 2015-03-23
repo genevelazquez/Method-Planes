@@ -60,12 +60,11 @@ methodDraw.addExtension("lineLength", function(S) {
         var lineLengthDec = 2 // decimals to trim for measurement
 
 
-
 // Section 3) Append necessary HTML elements (if it's a left-toolbar button define it according to svg-edit extension docs in return object.)------------------------
 
 
 
-            $('#selected_panel').attachToPanelAfter(1).after("<label><input id='lineLength'><span>Line Length</span></label>");
+            $('#selected_panel').attachToPanelAfter(1).after("<label><input style='height:100%;' id='lineLength'><span>Line Length</span></label>");
             $('#lineLength').dragInput({
                 min: 5,
                 max: 500,
@@ -74,10 +73,6 @@ methodDraw.addExtension("lineLength", function(S) {
                 cursor: false
             }); //init a Method-draw drag input template. Do not remove/modify this 
             $('#lineLength').val(0);
-
-
-
-
 
 
 
