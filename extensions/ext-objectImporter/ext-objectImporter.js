@@ -150,7 +150,7 @@ function spinnerLock(bool){
 var objectPrefix = "planeModel"; //class to give to each imported object
 
 //sample objects you can use
-var anAirfield = {
+window.anAirfield = {
     "id":"airfield1",
     "width":"1500",
     "height":"1100",
@@ -222,21 +222,12 @@ $("<style>")
 
 
 
-setTimeout(function(){
-    importAirfield(anAirfield);
-},1000)
-
-setTimeout(function(){
-    importElementToCanvas([anObject,anObject2]);
-},1000)
-
-
 
 
 
 //Allows import of single SVG element in the editor - uses string concatenation, might be too slow, might be able to use webWorker for string concat
 
-function importAirfield(object){
+window.importAirfield = function(object){
 
     setTimeout(function(){
 
@@ -262,7 +253,7 @@ function importAirfield(object){
 
 //Allows import of multiple SVG element in the editor - uses string concatenation, might be too slow, might be able to use webWorker for string concat
 
-function importElementToCanvas(objects){
+window.importElementToCanvas = function(objects){
 
     spinnerLock(true);
 

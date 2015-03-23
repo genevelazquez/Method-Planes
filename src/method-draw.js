@@ -28,7 +28,7 @@
 		var Editor = {};
 		var is_ready = false;
 		curConfig = {
-			canvas_expansion: 5, 
+			canvas_expansion: 2, 
 			dimensions: [1500,1100], 
 			initFill: {color: 'fff', opacity: 0},
 			initStroke: {width: 1, color: '4880FF', opacity: 1},
