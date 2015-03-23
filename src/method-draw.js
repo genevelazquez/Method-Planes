@@ -28,11 +28,10 @@
 		var Editor = {};
 		var is_ready = false;
 		curConfig = {
-			canvas_expansion: 2, 
-			dimensions: [1500,1100], 
-			initFill: {color: 'fff', opacity: 0},
-			initStroke: {width: 1, color: '4880FF', opacity: 1},
-			zoom:{min:0.5,max:4.0},
+		  canvas_expansion: 2, 
+		  dimensions: [1500,1100], 
+		  initFill: {color: 'fff', opacity: 0},
+		  initStroke: {width: 1, color: '4880FF', opacity: 1},
 			initOpacity: 1,
 			imgPath: 'images/',
 			extPath: 'extensions/',
@@ -642,7 +641,7 @@
 					// if the element changed was the svg, then it could be a resolution change
 					if (elem && elem.tagName === "svg") {
 						//populateLayers();
-						updateCanvas("initial");
+						updateCanvas();
 					} 
 					// Update selectedElement if element is no longer part of the image.
 					// This occurs for the text elements in Firefox
@@ -674,60 +673,39 @@
 				});
 			};
 			
-			var zoomChanged = svgCanvas.zoomChanged = function(win, bbox, mode) {
-
+			var zoomChanged = function(window, bbox, autoCenter) {
 				var scrbar = 15,
-					w_area = workarea;
-
-				//stop zooming further if min/max was reached
-				if(bbox.zoom<=curConfig.zoom.min||bbox.factor<=curConfig.zoom.min){
-					bbox.zoom=curConfig.zoom.min;
-					bbox.factor=curConfig.zoom.min;
-				}
-				if(bbox.zoom>=curConfig.zoom.max||bbox.factor>=curConfig.zoom.max){
-					bbox.zoom=curConfig.zoom.max;
-					bbox.factor=curConfig.zoom.max;
-				}
-
-				//perform zooming, also calculate the zoom difference (current vs previous zoom lvl)
-				var previousZoom = svgCanvas.getZoom();
-
+					res = svgCanvas.getResolution(),
+					w_area = workarea,
+					canvas_pos = $('#svgcanvas').position();
 				var z_info = svgCanvas.setBBoxZoom(bbox, w_area.width()-scrbar, w_area.height()-scrbar);
-
-				var currentZoom = svgCanvas.getZoom();
-				var zoomDiff = currentZoom - previousZoom;
-
-				if (!z_info) return false;
-
+				if(!z_info) return;
 				var zoomlevel = z_info.zoom,
 					bb = z_info.bbox;
-
-				$('#zoom').val((zoomlevel*100).toFixed(1));
-
-				//decide zooming mode and call updateCanvas to perform the scrolling
-
-    			switch(mode) {
-				    case "zoomToPoint":
-     					updateCanvas("zoomToPoint", {x: bbox.x, y: bbox.y}, zoomDiff);
-				        break;
-				    case "bbox":
-     					updateCanvas("zoomToPoint", {x: bbox.x, y: bbox.y}, zoomDiff);
-				        break;
-				    case "initial":
-				    	updateCanvas("initial");
-				    	break;	    
-				    default:
-				    	updateCanvas("initial");
-				        console.log("zoomChanged() function has not received a valid flag")
+				
+				if(zoomlevel < .001) {
+					changeZoom({value: .1});
+					return;
 				}
 
-				if (svgCanvas.getMode() == 'zoom' && bb.width) {
+				//if autoCenter not defined then we assume that we are zooming to a point
+				if(!autoCenter) {
+					updateCanvas(false, {x: bbox.x * zoomlevel + (bb.width * zoomlevel)/2, y: bbox.y * zoomlevel + (bb.height * zoomlevel)/2});
+				} else { 
+					updateCanvas();
+				}
+
+			    $("#zoom").val(parseInt(zoomlevel*100))
+			    $("option", "#zoom_select").removeAttr("selected")
+			    $("option[value="+ parseInt(zoomlevel*100) +"]", "#zoom_select").attr("selected", "selected")
+
+				if(svgCanvas.getMode() == 'zoom' && bb.width) {
 					// Go to select if a zoom box was drawn
 					setSelectMode();
 				}
-
+				
 				zoomDone();
-			};
+			}
 			
 			$('#cur_context_panel').delegate('a', 'click', function() {
 				var link = $(this);
@@ -1710,20 +1688,17 @@
 					ctl.value = .1;
 					return;
 				}
-
 				var zoom = svgCanvas.getZoom();
 				var w_area = workarea;
 				zoomChanged(window, {
 					width: 0,
 					height: 0,
-					// zoom by default to center of canvas
-					x: ($(svgcontent)[0].getAttribute("width")/2)/zoom, 
-					y: ($(svgcontent)[0].getAttribute("height")/2)/zoom,
+					// center pt of scroll position
+					x: (w_area[0].scrollLeft + w_area.width()/2)/zoom, 
+					y: (w_area[0].scrollTop + w_area.height()/2)/zoom,
 					zoom: zoomlevel
-				}, "zoomToPoint");
-
+				}, true);
 			}
-
 			
 			var changeBlur = function(ctl, completed) {
 				val = ctl.value;
@@ -1775,6 +1750,8 @@
 					el.value = selectedElement.getAttribute(attr);
 					return false;
 				}
+				//if (!noUndo) svgCanvas.changeSelectedAttribute(attr, val);
+				console.log(val)
 				svgCanvas.changeSelectedAttributeNoUndo(attr, val);
 			};
 			
@@ -1910,55 +1887,47 @@
 				$(opt).addClass('current').siblings().removeClass('current');
 			}
 			
-			//menu handling
-			var blinker = function(e) {
-			e.target.style.background = "#fff";
-			setTimeout(function(){e.target.style.background = "#ddd";}, 50);
-			setTimeout(function(){e.target.style.background = "#fff";}, 150);
-			setTimeout(function(){e.target.style.background = "#ddd";}, 200);
-			setTimeout(function(){e.target.style.background = "";}, 200);
-			setTimeout(function(){$('#menu_bar').removeClass('active')}, 220);
-			return false;
-			}
-			var closer = function(e){
-			if (e.target.nodeName && e.target.nodeName.toLowerCase() === "input") return false;
-			if (!$(e.target).hasClass("menu_title") && !$(e.target).parent().hasClass("menu_title")) {
-			  if(!$(e.target).hasClass("disabled") && $(e.target).hasClass("menu_item")) blinker(e)
-			  else $('#menu_bar').removeClass('active')
+      //menu handling
+      var blinker = function(e) {
+        e.target.style.background = "#fff";
+        setTimeout(function(){e.target.style.background = "#ddd";}, 50);
+        setTimeout(function(){e.target.style.background = "#fff";}, 150);
+        setTimeout(function(){e.target.style.background = "#ddd";}, 200);
+        setTimeout(function(){e.target.style.background = "";}, 200);
+        setTimeout(function(){$('#menu_bar').removeClass('active')}, 220);
+        return false;
+      }
+      var closer = function(e){
+        if (e.target.nodeName && e.target.nodeName.toLowerCase() === "input") return false;
+        if (!$(e.target).hasClass("menu_title") && !$(e.target).parent().hasClass("menu_title")) {
+          if(!$(e.target).hasClass("disabled") && $(e.target).hasClass("menu_item")) blinker(e)
+          else $('#menu_bar').removeClass('active')
 
-			}  
-			}
-
-			$('.menu_item').on('mousedown touchstart', function(e){blinker(e)});
-			$("svg, body").on('mousedown  touchstart', function(e){closer(e)});
-	      
-			var accumulatedDelta = 0
-			$('#workarea').on('mousewheel', function(e, delta, deltaX, deltaY){
-			if (e.altKey) {
-			  e.preventDefault();
-			  zoom = parseInt($("#zoom").val())
-				var zoom = svgCanvas.getZoom()+deltaY/10;
-					var w_area = workarea;
-					zoomChanged(window, {
-						width: 0,
-						height: 0,
-						// get mouse position
-						x: (event.pageX -  $(svgcontent).offset().left) / svgCanvas.getZoom(), 
-						y: (event.pageY -  $(svgcontent).offset().top) / svgCanvas.getZoom(),
-						zoom:zoom
-					}, "zoomToPoint");
-			}
-			})
-
-			$(document.body).on('mousedown',".menu_title", function() {
-				$("#tools_shapelib").hide()
-				$("#menu_bar").toggleClass('active');
-				$('.menu').removeClass('open');
-				$(this).parent().addClass('open');
-			}).on('mouseover',".menu_title", function() {
-				$('.menu').removeClass('open');
-				$(this).parent().addClass('open');
-			});
+        }  
+      }
+      
+      $('.menu_item').on('mousedown touchstart', function(e){blinker(e)});
+      $("svg, body").on('mousedown  touchstart', function(e){closer(e)});
+      
+      var accumulatedDelta = 0
+      $('#workarea').on('mousewheel', function(e, delta, deltaX, deltaY){
+        if (e.altKey) {
+          e.preventDefault();
+          zoom = parseInt($("#zoom").val())
+          $("#zoom").val(parseInt(zoom + deltaY*10)).change()
+        }
+      })
+			 $(document.body)
+			  .on('mousedown',".menu_title", function() {
+			    $("#tools_shapelib").hide()
+			    $("#menu_bar").toggleClass('active');
+			    $('.menu').removeClass('open');
+          $(this).parent().addClass('open');
+			  })
+        .on('mouseover',".menu_title", function() {
+           $('.menu').removeClass('open');
+           $(this).parent().addClass('open');
+         });
 
 			
 			// Made public for UI customization.
@@ -2379,7 +2348,7 @@
 					setSelectMode();
 					svgCanvas.clear();
 					svgCanvas.setResolution(dims[0], dims[1]);
-					updateCanvas("initial");
+					updateCanvas(true);
 					zoomImage();
 					updateContextPanel();
 					prepPaints();
@@ -2506,7 +2475,7 @@
 				$('#zoom').val(multiplier * 100);
 				svgCanvas.setZoom(multiplier);
 				zoomDone();
-				updateCanvas("initial");
+				updateCanvas(true);
 			};
 			
 			var zoomDone = function() {
@@ -2831,7 +2800,7 @@
 			}*/
 			
 			$(window).resize(function(evt) {
-					updateCanvas("initial");
+					updateCanvas();
 			});
 			
 			(function() {
@@ -3204,7 +3173,7 @@
 				height.val(dims.h)
 				return false;
 			}
-			 updateCanvas("initial");
+			 updateCanvas();
 		}
 		
 		
@@ -3749,7 +3718,7 @@
 							var reader = new FileReader();
 							reader.onloadend = function(e) {
 								loadSvgString(e.target.result);
-								updateCanvas("initial");
+								updateCanvas();
 							};
 							reader.readAsText(f.files[0]);
 						}
@@ -3762,26 +3731,7 @@
 			}
 
 			
-/*
---NEW UPDATE CANVAS--
-
-
---Has a global var updateCanvasFloats(an x,y point) which is used to keep track of floating point movements 
-  jQuery's scrollLeft accepts only INT's which result in rounding errors, so we keep track of the scrollings
---Can now zoom to a point
---When used without any intention to zoom to a point, use updateCanvas("initial")
-
---TODO's
-  -fix the canvas_expansion issues(when zooming it eats up a lot of canvas real estate)
-  -fix the zoom by dropdown(it should center_zoom in or out)
-  -fix the zoom by creating a bbox with the zoom tool
-  -document this and the changedZoom function in readthedocs.org
-*/
-
-			
-			var updateCanvasFloats = null; //stores float numbers
-			var updateCanvas = Editor.updateCanvas = function(mode, new_ctr, zoomDiff) {
-
+			var updateCanvas = Editor.updateCanvas = function(center, new_ctr) {
 				var w = workarea.width(), h = workarea.height();
 				var w_orig = w, h_orig = h;
 				var zoom = svgCanvas.getZoom();
@@ -3808,33 +3758,35 @@
 				cnvs.width(w).height(h);
 				var new_can_y = h/2;
 				var new_can_x = w/2;
-
-				var offset = svgCanvas.updateCanvas(w, h); 
+				var offset = svgCanvas.updateCanvas(w, h);
+				
 				var ratio = new_can_x / old_can_x;
 		
 				var scroll_x = w/2 - w_orig/2;
 				var scroll_y = h/2 - h_orig/2;
 				
+				if(!new_ctr) {
+		
+					var old_dist_x = old_ctr.x - old_can_x;
+					var new_x = new_can_x + old_dist_x * ratio;
+		
+					var old_dist_y = old_ctr.y - old_can_y;
+					var new_y = new_can_y + old_dist_y * ratio;
+		
+					new_ctr = {
+						x: new_x,
+						y: new_y
+					};
+					
+				} else {
+					new_ctr.x += offset.x,
+					new_ctr.y += offset.y;
+				}
 				
-				if(mode==="initial") {
-
-					if(!new_ctr) {
-			
-						var old_dist_x = old_ctr.x - old_can_x;
-						var new_x = new_can_x + old_dist_x * ratio;
-			
-						var old_dist_y = old_ctr.y - old_can_y;
-						var new_y = new_can_y + old_dist_y * ratio;
-			
-						new_ctr = {
-							x: new_x,
-							y: new_y
-						};
-						
-					} else {
-						new_ctr.x += offset.x,
-						new_ctr.y += offset.y;
-					}
+				//width.val(offset.x)
+				//height.val(offset.y)
+				
+				if(center) {
 					// Go to top-left for larger documents
 					if(svgCanvas.contentW > w_area.width()) {
 						// Top-left
@@ -3845,46 +3797,14 @@
 						w_area[0].scrollLeft = scroll_x;
 						w_area[0].scrollTop = scroll_y;
 					}
-				} 
-
-				else if(mode==="zoomToPoint") {
-					//zoom to point here
-					svgCanvas.updateCanvas(w/zoom, h/zoom); //cancel out the svgCanvas.updateCanvas done above
-
-					//construct a point with the previous mousePos and new mousePos diff
-					var v = {x: (new_ctr.x - ($(svgcontent)[0].getAttribute("width")/2)/zoom) * zoomDiff, y: (new_ctr.y - ($(svgcontent)[0].getAttribute("height")/2)/zoom) * zoomDiff};
-
-
-					//initialize as a point if this is the first time we scroll to a point
-					if (updateCanvasFloats === null) {
-      					updateCanvasFloats = {scrollTop:w_area[0].scrollTop,scrollLeft:w_area[0].scrollLeft}; 
-					}
-
-					//reset if panning has occured
-					if((parseInt(updateCanvasFloats.scrollLeft)!==parseInt(w_area[0].scrollLeft))||(parseInt(updateCanvasFloats.scrollTop)!==parseInt(w_area[0].scrollTop))){
-						updateCanvasFloats.scrollLeft = w_area[0].scrollLeft;
-      					updateCanvasFloats.scrollTop = w_area[0].scrollTop;
-					}
-					
-					//add to the floats(jquery's scroll left deals with INT so we keep separate track of the movement changes in global float var)
-					updateCanvasFloats.scrollLeft += v.x;
-      				updateCanvasFloats.scrollTop += v.y;
-
-
-					w_area[0].scrollLeft = updateCanvasFloats.scrollLeft;
-      				w_area[0].scrollTop = updateCanvasFloats.scrollTop;
-
-				} else{
-
+				} else {
 					w_area[0].scrollLeft = new_ctr.x - w_orig/2;
 					w_area[0].scrollTop = new_ctr.y - h_orig/2;
 				}
-
 				if(curConfig.showRulers) {
 					updateRulers(cnvs, zoom);
 					workarea.scroll();
 				}
-
 			}
 			
 			// Make [1,2,5] array
@@ -4053,7 +3973,7 @@
 			}
 		
 // 			$(function() {
-				updateCanvas("initial");
+				updateCanvas(true);
 // 			});
 			
 		//	var revnums = "svg-editor.js ($Rev: 2083 $) ";
