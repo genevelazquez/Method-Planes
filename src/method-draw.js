@@ -674,6 +674,7 @@
 			};
 			
 			var zoomChanged = function(window, bbox, autoCenter) {
+
 				var scrbar = 15,
 					res = svgCanvas.getResolution(),
 					w_area = workarea,
