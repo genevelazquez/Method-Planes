@@ -2,12 +2,14 @@
 
 This section illustrates the various replacements, bug fixings and code changes throughout the original Method-draw/SVG-edit code.
 
+- Any work on this application takes on from this Method-Draw commit. Find it [here](https://github.com/duopixel/Method-Draw/tree/e99203c973edc69114ede228b443bab0b1ce5996)
+
 
 ----------
 
 ## zoomChanged() ##
 
-    zoomChanged(window, bbox, autoCenter) <!---found in method-draw.js-->
+    zoomChanged(window, bbox, autoCenter)
 
 - `window` : *the zooming window (missing info)*
 - `bbox` : `Object {x: number, y: number, width: number, height: number, zoom: float}` - *the bbox to zoom to*
@@ -17,6 +19,9 @@ This section illustrates the various replacements, bug fixings and code changes 
 
 This function handles the zoom - 
 It is called by any place in the code when a zoom is needed (e.g mouse scroll zoom, zoom input changes, zoom tool etc.)
+
+##### Found in: #####
+- method-draw.js
 
 ##### Change reason: #####
 - It now allows zooming-to-a-point if autoCenter is false/undefined
