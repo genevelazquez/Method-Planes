@@ -7,7 +7,7 @@ This section illustrates the various replacements, bug fixings and code changes 
 
 ## zoomChanged() ##
 
-    zoomChanged(window, bbox, autoCenter) //found in method-draw.js
+    zoomChanged(window, bbox, autoCenter) <!---found in method-draw.js-->
 
 - `window` : *the zooming window (missing info)*
 - `bbox` : `Object {x: number, y: number, width: number, height: number, zoom: float}` - *the bbox to zoom to*
@@ -67,11 +67,3 @@ It is called by any place in the code when a zoom is needed (e.g mouse scroll zo
 ----------
 
 
-
-    importElements(objects)
-
-objects : *array* with `aircraft` *objects*
-
-- Accepts an *array* with `aircraft` *objects*
-- Imports an aircraft element at a specific position and rotation. 
-- The plane is partly unclickable by default apart from a dot(SVG circle within the plane) which should have a class `.planeGrab`
