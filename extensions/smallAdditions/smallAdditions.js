@@ -101,7 +101,7 @@ setInterval(function(){
 },2000);
 
 
-
+//Notify Filemaker that editor has finished intial loading
 window.onload = function(){
 
   $.ajax({
