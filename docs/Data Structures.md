@@ -34,17 +34,19 @@ This section illustrates the various data structures that are used in the applic
 **Contains:**
 
 - `"id"`: Unique id of the aircraft
+- `"width"`: Width of the aircraft 
+- `"height"`:Height of the aircraft
 - `"x"` : Position of aircraft on the X axis of the canvas
 - `"y"`: Position of aircraft on the Y axis of the canvas
 - `"rotation"`: Rotation of the aircraft in degrees
-- `"rx"`: X Center of Rotation of the aircraft. Required to be the X center of the bounding box of the aircraft
-- `"ry"`: Y Center of Rotation of the aircraft. Required to be the Y center of the bounding box of the aircraft
 - `"label"`:String with label text- Generally used for tail numbers - (max:8 chars),(use `"null"` for no data)
 - `"labelFontSize"` : Font size of label text
 - `"labelYPos"`: Position of label text. 0 is top of the aircraft group, not the canvas. Tweak this amount until the label text is just above the wings. 
 - `"svgString"` : The aircraft parts. Can be grouped already but they will be grouped again internally within an `<g`> with the aircrafts unique id
 
 > Note: Label text should not in any way stretch the bounding box of the aircraft. It must not exceed in any way the width/height or x/y positions of the aircraft so as to distort the aircraft's width/height bounding box. Make sure the label text sits inside the aircraft's natural area(bounding box)
+> 
+> Note: The silhuette path of the aircraft(the outline) must be a single, uniform path with class `.silhouette`
 
 *Example:*
 

@@ -35,8 +35,8 @@ $(function() {
 
  //Add 45 degrees turn tools
 
-  $('#selected_panel').attachToPanelPosition(8).before("<div class='bigBtn' id='rotateR45Btn'>Rotate Left 45°</div>");;
-  $('#selected_panel').attachToPanelPosition(8).before("<div class='bigBtn' id='rotateL45Btn'>Rotate Right 45°</div>");;
+  $('#selected_panel').attachToPanelPosition(1).before("<div class='bigBtn' id='rotateR45Btn'>Rotate Left 45°</div>");;
+  $('#selected_panel').attachToPanelPosition(1).before("<div class='bigBtn' id='rotateL45Btn'>Rotate Right 45°</div>");;
   var customRotationOptions= {
     'selRotationAngle' : 45,
     'rotationLimit' : 180
@@ -90,8 +90,8 @@ $(function() {
         var childNodes = $("#svgcontent")[0].childNodes;
         for (var i = 0; i < childNodes.length; i++) {
           console.log()
-          $(childNodes[i]).find(".planeModel").find('path,circle,rect,ellipse').attr('class', 'plane');
-          $(childNodes[i]).find(".planeModel").find('#Grab_dot_front_1_').attr('class', 'planeGrab');
+          $(childNodes[i]).find(".planeModel").find('path,circle,rect,ellipse').attr('style', 'pointer-events:none;');
+          $(childNodes[i]).find(".planeModel").find('#Grab_dot_front_1_').attr('style', 'pointer-events:all !important;');
         };
   }
 

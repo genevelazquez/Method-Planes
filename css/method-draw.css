@@ -15,14 +15,10 @@ textarea{
 }
 
 
-.airfield,
-.plane{
+.airfield{
   pointer-events:none !important;
 }
 
-.planeGrap{
-  pointer-events:all !important;
-}
 
 body {
   background: #3f3f3c !important;
@@ -647,7 +643,7 @@ html, body {
   top: 20px;
   border-bottom: none;
   overflow: visible;
-  padding: 0 0 0 15px;
+  padding: 5px 0 0 15px;
 }
 
 .touch  #tools_top {
