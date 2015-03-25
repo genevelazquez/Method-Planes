@@ -1,4 +1,4 @@
-//Small requests Script. I don't want to create .js files for each minor change/addition 'Denis the customer' requests, so I'm putting them all here
+//Small requests Script. I don't want to create .js files for each minor change/addition requests, so I'm putting them all here
 
 
 
@@ -95,9 +95,26 @@ $(function() {
         };
   }
 
+
 setInterval(function(){
   disablePlaneHandles()
 },2000);
+
+
+
+window.onload = function(){
+
+  $.ajax({
+      type: "get", url: "fmp://localhost/Aircraft%20Parking%20/Demo.fmp12?script=Load%20Complete",
+      success: function (data) {
+          //...
+      },
+      error: function (request, status, error) {
+          console.log(error);
+      }
+  });
+
+}
 
 });
 
