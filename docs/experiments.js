@@ -105,3 +105,68 @@ $('.clearfix').click(function(){
 	setTimeout(function(){moveSingleElementAnim(-100,0)},5000);
 	setTimeout(function(){moveSingleElementAnim(0,-100)},8000);
 });
+
+
+
+
+/* -----------------BEAM MOVER EXPERIMENT---------------
+
+Moving along a line orinted by the plane
+
+By hijacking the snapToGrid function this is doable.
+
+
+// STEP 1 - ADD THIS IN svgcanvas.js
+
+/* 
+-- Function: snapToBeam() --
+
+- Allows calculating x/y movements for mousemove in order for the element to move only along the direction it is facing
+- Similar to snapToAngle in math.js. However here, the elem can only move perpendicular to a line crossing it's center.
+
+
+Parameters:
+- elem : The elem we are tracking
+- x1 : X pos of starting point of movement
+- y1 : Y pos of starting point of movement
+- x2 : X pos of ending point of movement
+- y2 : Y pos of ending point of movement
+
+Returns:
+- x,y : vector describing next position as constrained by it's directional line 
+- snapangle : angle of movement
+- return values can be used to move the element accordingly by any function that moves an element
+
+*/
+
+this.snapToBeam = function(elem,x1,y1,x2,y2) {
+
+	var dx = x2 - x1;
+	var dy = y2 - y1;
+	var dist = Math.sqrt(dx * dx + dy * dy);
+	var snapangle= (svgCanvas.getRotationAngle(elem)-90)*(3.14/180); //radians used here
+	var x = x1 - dist*Math.cos(snapangle);	
+	var y = y1 - dist*Math.sin(snapangle);
+	return {x:x, y:y, a:snapangle};
+};
+
+
+// STEP 2 - ADD THIS IN mousemove func() in svgCanvas.js in the 'select' case just below the 'if (evt.shiftKey) ... snapToAngle() etc'
+
+if(curConfig.beamRiding){ 
+	var xya = svgCanvas.snapToBeam(selectedElements[0],start_x,start_y,x,y); x=xya.x; y=xya.y;
+}
+
+// STEP 3 - Modify the curConfig object in svgCanvas to include a beamRiding variable  - also push the curConfig object to svgCanvas scope
+
+// Default configuration options
+var curConfig = this.curConfig = {
+	show_outside_canvas: true,
+	selectNew: true,
+	dimensions: [640, 480],
+	beamRiding : true
+};
+
+
+
+//--------------------End of beam follower experiment----------------------

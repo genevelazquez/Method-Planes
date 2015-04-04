@@ -72,7 +72,7 @@ methodDraw.addExtension("multiStroker", function(S) {
 // Section 3) Append necessary HTML elements (if it's a left-toolbar button define it according to svg-edit extension docs in return object.)------------------------
 
 
-  $('#tools_top').attachToPanelAfter(1).after("<div class='bigBtn' id='safeDistanceStroke'>Show safe distances</div>");;
+  $('#tools_top').attachToPanelAfter(1).after("<div class='toolBtn fullToolBtn' id='safeDistanceStroke'>Show safe distances</div>");;
 
 
 
