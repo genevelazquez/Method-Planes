@@ -1752,7 +1752,6 @@
 					return false;
 				}
 				//if (!noUndo) svgCanvas.changeSelectedAttribute(attr, val);
-				console.log(val)
 				svgCanvas.changeSelectedAttributeNoUndo(attr, val);
 			};
 			

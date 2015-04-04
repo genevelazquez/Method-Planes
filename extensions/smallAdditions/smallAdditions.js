@@ -5,7 +5,7 @@
 //Remove tools
 
 $(function() {
- $('#align_tools,#tool_cut,#tool_copy,#tool_paste,#tool_move_top,#tool_angle,#tool_ellipse,#tool_rect,#tool_move_bottom,#tool_move_up,#tool_move_down,#tool_wireframe, #tool_image,#tool_eyedropper, main_button, #sidepanels,#tool_fhpath,#color_tools,#palette,#tool_snap,#tool_clear,#canvas_panel ').remove();
+ $('#align_tools,#tool_cut,#path_panel,#tool_copy,#tool_paste,#tool_move_top,#tool_angle,#tool_ellipse,#tool_rect,#tool_move_bottom,#tool_move_up,#tool_move_down,#tool_wireframe, #tool_image,#tool_eyedropper, main_button, #sidepanels,#tool_fhpath,#color_tools,#palette,#tool_snap,#tool_clear,#canvas_panel ').remove();
 
  /*Some elements cannot be removed because their values need to be exposed for some Method-Draw function to work. 
  Disable them using CSS visibility and absolutes instead*/
