@@ -118,7 +118,7 @@ var curConfig = this.curConfig = {
 	show_outside_canvas: true,
 	selectNew: true,
 	dimensions: [640, 480],
-	beamRiding : false
+	beamRiding : true
 };
 
 
@@ -1102,7 +1102,7 @@ this.setRotationAngle = function(val,preventUndo,byPivot,pivotX,pivotY) {
 -- Function: snapToBeam() --
 
 - Allows calculating x/y movements for mousemove in order for the element to move only along the direction it is facing
-- Similar to snapToAngle in math.js. However here, the elem can only move perpendicular to a line crossing it's center.
+- Uses 'orthogonal projection of point onto a line in 2D' formula: http://de.wikipedia.org/wiki/Orthogonalprojektion#Projektion_auf_eine_Gerade
 
 
 Parameters:
@@ -1120,13 +1120,10 @@ Returns:
 */
 
 this.snapToBeam = function(elem,x1,y1,x2,y2) {
-	var dx = x2 - x1;
-	var dy = y2 - y1;
-	var dist = Math.sqrt(dx * dx + dy * dy);
-	var snapangle= (svgCanvas.getRotationAngle(elem)-90)*(3.14/180); //radians used here
-	var x = x1 + dist*Math.cos(snapangle);	
-	var y = y1 + dist*Math.sin(snapangle);
-	return {x:x, y:y, a:snapangle};
+	var snapangle = (svgCanvas.getRotationAngle(elem)-90)*(3.14/180); //radians used here
+	var u = {'x':Math.cos(snapangle),'y':Math.sin(snapangle)};
+	var a = (x2-x1) * u.x + (y2-y1) * u.y;
+	return {x: x1+a*u.x, y:y1+a*u.y};
 };
 
 

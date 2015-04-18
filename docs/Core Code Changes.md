@@ -71,114 +71,58 @@ It is called by any place in the code when a zoom is needed (e.g mouse scroll zo
 
 ----------
 
-## setRotationAngle() ##
 
-    setRotationAngle(val,preventUndo,byPivot,pivotX,pivotY)
+## snapToBeam() ***new*** ##
 
-- `val` : `bool` - Rotation angle value in degrees
-- `preventUndo` : `bool` - Undoable or not
-- `byPivot` : `bool`, - If true rotates around pivot, false around center
-- `pivotX` : `INT`, - Pivot point in X axis
-- `pivotY` : `INT`, - Pivot point in Y Axis
+    snapToBeam(elem,x1,y1,x2,y2)
+    
+- `elem` : `Element object: the element we want to move`
+- `x1` : `INT: x pos of initial point`
+- `y1` : `INT: y pos of initial point`
+- `x2` : `INT: x pos of new point` 
+- `y2` : `INT: y pos of new point`
 
 ----------
 
-This function handles element rotations around center of element
+Calculates new x,y positions to move the elem in order for it to move parallel to an imaginary line crossing it's center - e.g it returns values that will move the element only forward/backward to where it is facing - uses orthogonal projection in 2D formula
 
 ##### Found in: #####
 - svgcanvas.js
 
-##### Change reason: #####
-- It now allows rotating around a custom center by emulating pivot rotations (rotating around center and apprpriately translating to simulate this - not by using SVG's transform=rotate(angle,pivotX,pivotY)
-
 ##### Notes: #####
-- Uses 3 custom globals to keep previous rotation values
+- Needs the elem itself passed as an argument in order to fetch it's current rotation
+- Returns values that will move the elem in x,y steps - e.g those are not absolute positions - the origin is the elem itself
 
-##### Replacement: #####
+##### Function Code: #####
 
-		this.currentPivotRotation = 0;
-	    var pivotX = null;
-	    var pivotY = null;
+		/* 
+		-- Function: snapToBeam() --
+		
+		- Allows calculating x/y movements for mousemove in order for the element to move only along the direction it is facing
+		- Uses 'orthogonal projection of point onto a line in 2D' formula: http://de.wikipedia.org/wiki/Orthogonalprojektion#Projektion_auf_eine_Gerade
+		
+		
+		Parameters:
+		- elem : The elem we are tracking
+		- x1 : X pos of starting point of movement
+		- y1 : Y pos of starting point of movement
+		- x2 : X pos of ending point of movement
+		- y2 : Y pos of ending point of movement
+		
+		Returns:
+		- x,y : vector describing next position as constrained by it's directional line 
+		- snapangle : angle of movement
+		- return values can be used to move the element accordingly by any function that moves an element
+		
+		*/
+		
+		this.snapToBeam = function(elem,x1,y1,x2,y2) {
+			var snapangle = (svgCanvas.getRotationAngle(elem)-90)*(3.14/180); //radians used here
+			var u = {'x':Math.cos(snapangle),'y':Math.sin(snapangle)};
+			var a = (x2-x1) * u.x + (y2-y1) * u.y;
+			return {x: x1+a*u.x, y:y1+a*u.y};
+		};
 
-	    this.setRotationAngle = function(val,preventUndo,byPivot,pivotX,pivotY) {
+----------
 
-		    //prevent max rotations
-	    	if(val>(180)) 
-	      		return false;
-	     	if(val<(-180)) 
-	      		return false;
-	    
-	    	// ensure val is the proper type
-	    	var elem = selectedElements[0];
-	    	if (!elem) return;
-	    	var oldTransform = elem.getAttribute("transform");
-	    	var bbox = svgedit.utilities.getBBox(elem);
-	    	var cx = bbox.x+bbox.width/2, cy = bbox.y+bbox.height/2;
-	    	var tlist = getTransformList(elem);
-	    	
-	    	// only remove the real rotational transform if present (i.e. at index=0)
-	    	if (tlist.numberOfItems > 0) {
-	    		var xform = tlist.getItem(0);
-	    		if (xform.type == 4) {
-	    			tlist.removeItem(0);
-	    		}
-	    	}
-	    
-	    	// find R_nc and insert it
-	    	if (val != 0) {
-	    		var center = transformPoint(cx,cy,transformListToTransform(tlist).matrix);
-	    		var R_nc = svgroot.createSVGTransform();
-	    		R_nc.setRotate(val, center.x, center.y);
-	    		if(tlist.numberOfItems) {
-	    			tlist.insertItemBefore(R_nc, 0);
-	    		} else {
-	    			tlist.appendItem(R_nc);
-	    		}
-	    	}
-	    	else if (tlist.numberOfItems == 0) {
-	    		elem.removeAttribute("transform");
-	    	}
-	    	
-	    	if (!preventUndo) {
-	    		// we need to undo it, then redo it so it can be undo-able! :)
-	    		// TODO: figure out how to make changes to transform list undo-able cross-browser?
-	    		var newTransform = elem.getAttribute("transform");
-	    		elem.setAttribute("transform", oldTransform);
-	    		changeSelectedAttribute("transform",newTransform,selectedElements);
-	    		call("changed", selectedElements);
-	    
-	    	}
-	    	var pointGripContainer = getElem("pathpointgrip_container");
-	    
-	    	var selector = selectorManager.requestSelector(selectedElements[0]);
-	    	selector.resize();
-	    	selector.updateGripCursors(val);
-	    
-	    
-	    	//End of regular rotations - now start moving in steps to offset and simulate pivot rotation
-	      	if (pivotX == null) {
-	      		pivotX = bbox.x;
-	    		pivotY = bbox.y;
-	      	}
-	    
-	    	var rad = ((val - svgCanvas.currentPivotRotation) * 3.1415926 / 180)
-	    
-	    	var centerx = bbox.width / 2 + bbox.x;
-	    	var centery = bbox.height / 2 + bbox.y;
-	    
-	    
-	     	var step_x = Math.cos(rad) * (centerx - pivotX) - Math.sin(rad) * (centery - pivotY);
-	    var step_y = Math.sin(rad) * (centerx - pivotX) + Math.cos(rad) * (centery - pivotY);
-	      
-	    svgCanvas.currentPivotRotation = val;
-	    
-	    steppingX = (step_x-centerx+pivotX)*current_zoom; 
-	    steppingY = (step_y-centery+pivotY)*current_zoom; 
-	    
-    	if(byPivot){
-    		svgCanvas.moveSingleElement(selectedElements[0],steppingX, steppingY, true);
-    	}
-    
-    	svgCanvas.recalculateAllSelectedDimensions();
-    };
-
+----------

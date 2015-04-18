@@ -3,7 +3,7 @@
 #### Annandale, Virginia USA ####
 
 
-- Original Author: nicholaswmin 
+- Original Author: Nicholas Kyriakides(@nicholaswmin), Simon Reinwand
 - An extension of Mark McKay's / SVG-edit team : [Method-Draw SVG editor](https://github.com/duopixel/Method-Draw)
 
 
