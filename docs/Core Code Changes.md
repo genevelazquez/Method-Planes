@@ -2,10 +2,147 @@
 
 This section illustrates the various replacements, bug fixings and code changes throughout the original Method-draw/SVG-edit code.
 
-- Any work on this application takes on from this Method-Draw commit. Find it [here](https://github.com/duopixel/Method-Draw/tree/e99203c973edc69114ede228b443bab0b1ce5996)
+- Any work on this application takes on(continues) from this Method-Draw commit. Find it [here](https://github.com/duopixel/Method-Draw/tree/e99203c973edc69114ede228b443bab0b1ce5996)
+
+## setRotationAngle() ##
+
+    svgCanvas.setRotationAngle(val,preventUndo,byPivot,pivotX,pivotY,specificElem)
+
+- `val` :  `INT: Amount of absolute rotation in degrees`
+- `preventUndo` : `BOOL: Undoable or not `
+- `pivotX` : `FLOAT: Pivot point on X axis`
+- `pivotY` : `FLOAT: Pivot point on Y axis`
+- `specificElem` : `Element Object: A specific elem to use here - if not provided the currently selected element is used instead`
 
 
 ----------
+
+This function handles the element rotation either around the centre of element, or around a specified pivot point.
+
+##### Found in: #####
+- svgcanvas.js
+
+##### Change reason: #####
+- It now allows rotating around a pivot 
+- It now allows overriding the elem being rotated from currently selected to a specific one provided
+
+##### Notes: #####
+- Pivot rotations DO NOT use the 'native SVG' command `transform=rotate(degrees,centerX,centerY)` command. - The pivot rotations are instead simulated - Method-draw get's confused when the rotation center is messed with - We keep the rotation center when rotating by pivot and we just translate the element appropriately so as to *simulate* pivot rotations whilst keeping the rotation center in the middle of the element.
+
+##### Replacement: #####
+
+	/* 
+	-- Function: setRotationAngle() --
+	
+	- Allows rotation of an element either around it's center or around a pivot point
+	- Pivot rotations do not use the regular svg rotate with custom centers command. Instead an emulation is made here,
+	  by rotating an element around it's center and moving in certain x,y steps in order to simulate the pivot rotation
+	
+	
+	Parameters:
+	- val : Integer indicating the new rotation angle in degrees
+	- preventUndo : Boolean indicating whether the action should be undoable or not
+	- byPivot : Boolean indicating whether rotation is by pivot, if not given center rotation is assumed
+	- pivotX : Integer indicating The x position of the pivot relative to the canvas
+	- pivotY : Integer indicating. The y position of the pivot relative to the canvas
+	- specificElem: element object - if provided it overrides the element being rotated from currently selected
+	
+	*/
+	
+		this.currentPivotRotation = 0;
+		var pivotX = null;
+		var pivotY = null;
+		this.setRotationAngle = function(val,preventUndo,byPivot,pivotX,pivotY,specificElem) {
+		
+			//prevent max rotations
+			if(val>(180)) 
+		  		return false;
+		 	if(val<(-180)) 
+		  		return false;
+		
+			// ensure val is the proper type
+			if(specificElem){
+				var elem = specificElem;
+			}else{
+				var elem = selectedElements[0];		
+			}
+		
+			if (!elem) return;
+			var oldTransform = elem.getAttribute("transform");
+			var bbox = svgedit.utilities.getBBox(elem);
+			var cx = bbox.x+bbox.width/2, cy = bbox.y+bbox.height/2;
+			var tlist = getTransformList(elem);
+			
+			// only remove the real rotational transform if present (i.e. at index=0)
+			if (tlist.numberOfItems > 0) {
+				var xform = tlist.getItem(0);
+				if (xform.type == 4) {
+					tlist.removeItem(0);
+				}
+			}
+		
+			// find R_nc and insert it
+			if (val != 0) {
+				var center = transformPoint(cx,cy,transformListToTransform(tlist).matrix);
+				var R_nc = svgroot.createSVGTransform();
+				R_nc.setRotate(val, center.x, center.y);
+				if(tlist.numberOfItems) {
+					tlist.insertItemBefore(R_nc, 0);
+				} else {
+					tlist.appendItem(R_nc);
+				}
+			}
+			else if (tlist.numberOfItems == 0) {
+				elem.removeAttribute("transform");
+			}
+			
+			if (!preventUndo) {
+				// we need to undo it, then redo it so it can be undo-able! :)
+				// TODO: figure out how to make changes to transform list undo-able cross-browser?
+				var newTransform = elem.getAttribute("transform");
+				elem.setAttribute("transform", oldTransform);
+				changeSelectedAttribute("transform",newTransform,selectedElements);
+				call("changed", selectedElements);
+		
+			}
+			var pointGripContainer = getElem("pathpointgrip_container");
+		
+			var selector = selectorManager.requestSelector(elem);
+			selector.resize();
+			selector.updateGripCursors(val);
+		
+		
+			//End of regular rotations - now start moving in steps to offset and simulate pivot rotation
+		  	if (pivotX == null) {
+		  		pivotX = bbox.x;
+				pivotY = bbox.y;
+		  	}
+		
+			var rad = ((val - svgCanvas.currentPivotRotation) * 3.1415926 / 180)
+		
+			var centerx = bbox.width / 2 + bbox.x;
+			var centery = bbox.height / 2 + bbox.y;
+		
+		
+		 	var step_x = Math.cos(rad) * (centerx - pivotX) - Math.sin(rad) * (centery - pivotY);
+		    var step_y = Math.sin(rad) * (centerx - pivotX) + Math.cos(rad) * (centery - pivotY);
+		  
+		    svgCanvas.currentPivotRotation = val;
+		
+		    steppingX = (step_x-centerx+pivotX)*current_zoom; 
+		    steppingY = (step_y-centery+pivotY)*current_zoom; 
+		
+			if(byPivot){
+				svgCanvas.moveSingleElement(elem,steppingX, steppingY, true);
+			}
+		
+			svgCanvas.recalculateAllSelectedDimensions();
+		};
+
+----------
+
+----------
+
 
 ## zoomChanged() ##
 

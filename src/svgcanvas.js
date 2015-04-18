@@ -1009,13 +1009,14 @@ Parameters:
 - byPivot : Boolean indicating whether rotation is by pivot, if not given center rotation is assumed
 - pivotX : Integer indicating The x position of the pivot relative to the canvas
 - pivotY : Integer indicating. The y position of the pivot relative to the canvas
+- specificElem: element object - if provided it overrides the element being rotated from currently selected
 
 */
 
 this.currentPivotRotation = 0;
 var pivotX = null;
 var pivotY = null;
-this.setRotationAngle = function(val,preventUndo,byPivot,pivotX,pivotY) {
+this.setRotationAngle = function(val,preventUndo,byPivot,pivotX,pivotY,specificElem) {
 
 	//prevent max rotations
 	if(val>(180)) 
@@ -1024,7 +1025,12 @@ this.setRotationAngle = function(val,preventUndo,byPivot,pivotX,pivotY) {
   		return false;
 
 	// ensure val is the proper type
-	var elem = selectedElements[0];
+	if(specificElem){
+		var elem = specificElem;
+	}else{
+		var elem = selectedElements[0];		
+	}
+
 	if (!elem) return;
 	var oldTransform = elem.getAttribute("transform");
 	var bbox = svgedit.utilities.getBBox(elem);
@@ -1065,7 +1071,7 @@ this.setRotationAngle = function(val,preventUndo,byPivot,pivotX,pivotY) {
 	}
 	var pointGripContainer = getElem("pathpointgrip_container");
 
-	var selector = selectorManager.requestSelector(selectedElements[0]);
+	var selector = selectorManager.requestSelector(elem);
 	selector.resize();
 	selector.updateGripCursors(val);
 
@@ -1091,7 +1097,7 @@ this.setRotationAngle = function(val,preventUndo,byPivot,pivotX,pivotY) {
     steppingY = (step_y-centery+pivotY)*current_zoom; 
 
 	if(byPivot){
-		svgCanvas.moveSingleElement(selectedElements[0],steppingX, steppingY, true);
+		svgCanvas.moveSingleElement(elem,steppingX, steppingY, true);
 	}
 
 	svgCanvas.recalculateAllSelectedDimensions();
