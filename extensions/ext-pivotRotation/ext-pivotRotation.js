@@ -9,6 +9,7 @@
  * Dependencies:
  * 1) jQuery
  * 2) svgcanvas.js
+ * 3) svgutils.js
 
 
 -This extension is split in 5 sections
@@ -28,8 +29,6 @@ Note: This type of extensions must also be declared in method-draw.js in order t
 */
 
 "use strict";
-
-
 
 // Section 1) Define extension --------------------------------------------------------------------------------------------------------------------------------------
 
@@ -58,7 +57,6 @@ methodDraw.addExtension("pivotRotation", function(S) {
 
     var pivotLeftClass = "Rotation_dot_left_1_";
     var pivotRightClass = "Rotation_dot_right_1_";
-    var coordinatesOriginId = "canvasBackground";
 
     var presetRotationOptions= {
     'selRotationAngle' : 15,
@@ -184,7 +182,6 @@ methodDraw.addExtension("pivotRotation", function(S) {
 
 
     //get pivot x,y positions from selected element - a global var controlled by the UI buttons indicate the dot we are using as pivot point
-
     var pivot = {"x":0,"y":0};
     function getPivotsXy(orientation){
 
@@ -208,14 +205,13 @@ methodDraw.addExtension("pivotRotation", function(S) {
         }
 
         if(pivotFound){
-            var bbox = pivotElem.getBoundingClientRect();
+            var bbox = svgedit.utilities.getOriginOffset(pivotElem)
         }else{
-            var bbox = singleSelected.getBoundingClientRect();
+            var bbox = svgedit.utilities.getOriginOffset(singleSelected)
         }
 
-        var canvas = $("#"+coordinatesOriginId)[0].getBoundingClientRect();
-        pivot.x = ((bbox.width/2)/currentZoom) + ((bbox.left-canvas.left)/currentZoom);
-        pivot.y = ((bbox.height/2)/currentZoom) + ((bbox.top-canvas.top)/currentZoom);
+        pivot.x = bbox.x;
+        pivot.y = bbox.y;
 
         return pivot;
 
