@@ -103,8 +103,10 @@ methodDraw.addExtension("multiStroker", function(S) {
 
     if(safeDistancesToggle){
       strokeAllPlanes(true)
+      $(this).addClass('toolBtnActive');
     }else{
-      strokeAllPlanes(false)     
+      strokeAllPlanes(false);
+      $(this).removeClass('toolBtnActive');     
     }
 
   });
