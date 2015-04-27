@@ -83,12 +83,16 @@ function getUrlParameter(sParam){
             return sParameterName[1];
         }
     }
-}
+};
 
 //Notify Filemaker that editor has finished intial loading
 window.onload = function(){
-	window.location = getUrlParameter( "filemakerCommUrl" ) + "Load%20Complete";
-}
+	var filemakerCommUrl = getUrlParameter( "filemakerCommUrl" ) ;
+	// Ensure the URL starts with fmp:
+	if ( filemakerCommUrl.search(/fmp:/) == 0 ) {
+		window.location = filemakerCommUrl + "Load%20Complete";
+	}
+};
 
 });
 
