@@ -72,6 +72,28 @@ $(function() {
   },2000);
 
 
+function getUrlParameter(sParam){
+    var sPageURL = window.location.search.substring(1);
+    var sURLVariables = sPageURL.split('&');
+    for (var i = 0; i < sURLVariables.length; i++) 
+    {
+        var sParameterName = sURLVariables[i].split('=');
+        if (sParameterName[0] == sParam) 
+        {
+            return sParameterName[1];
+        }
+    }
+};
+
+//Notify Filemaker that editor has finished intial loading
+window.onload = function(){
+	var filemakerCommUrl = getUrlParameter( "filemakerCommUrl" ) ;
+	// Ensure the URL starts with fmp:
+	if ( filemakerCommUrl.search(/fmp:/) == 0 ) {
+		window.location = filemakerCommUrl + "Load%20Complete";
+	}
+};
+
 });
 
 
