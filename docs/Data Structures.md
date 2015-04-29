@@ -45,18 +45,20 @@ This section illustrates the various data structures that are used in the applic
 - `"svgString"` : The aircraft parts. Can be grouped already but they will be grouped again internally within an `<g`> with the aircrafts unique id
 
 > Note: Label text should not in any way stretch the bounding box of the aircraft. It must not exceed in any way the width/height or x/y positions of the aircraft so as to distort the aircraft's width/height bounding box. Make sure the label text sits inside the aircraft's natural area(bounding box)
-> 
+
 > Note: The silhuette path of the aircraft(the outline) must be a single, uniform path with class `.silhouette`
+
+> Note: An Aircraft group should contain 2 `circle` elements defining their wheel position we use as pivot-points in `ext-pivotRotation.js`. Each pivot point should have a class `Rotation_dot_right_1_` and `Rotation_dot_left_1_` respectively
 
 *Example:*
 
     var aircraft = {
     "id":"svg_1332",
+	"width":"50",
+	"height":"75",
     "x" : "230",
     "y" : "300",
     "rotation": "90",
-    "rx":"0",
-    "ry":"0",
     "label":"LBA011", //use "null" if no data exists
     "labelFontSize":"6",
     "labelYPos":"16",

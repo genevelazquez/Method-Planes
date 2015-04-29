@@ -645,4 +645,64 @@ svgedit.utilities.cleanupElement = function(element) {
 };
 
 
+/*
+Function getBBoxCenter()
+Returns the bbox of the element in respect to the CENTER of the element instead of top-left.
+*/
+svgedit.utilities.getBBoxCenter = function (elem) {
+	var rectangle = elem.getBBox();
+	return {x: rectangle.x + rectangle.width / 2, y: rectangle.y + rectangle.height / 2};
+}
+
+
+
+
+/*
+	Function getOriginOffset()
+	Returns the bbox of the element in respect to the 0,0 of another element(usually the canvas)
+	- used where getBBox() is unreliable(e.g for objects inside <g> groups,rotated elems,etc)
+	- uses boundingClientRect() instead of getBBox()
+	- needs an element that is always at 0,0 of workarea - if not provided '#canvasBackground' is used instead
+*/
+svgedit.utilities.getOriginOffset = function(elem,ignoreZoom,offsetElem) {
+
+    var originOffset = {"x": 0,"y": 0,"width":0,"height":0};
+
+    if(ignoreZoom){
+    	var currZoom = 1; 
+    }else{
+       	var currZoom = svgCanvas.getZoom(); 	
+    }
+
+    if(!offsetElem){ //if offset elem is not given in arguments, use canvasBackground
+    	var offsetElem = $("#canvasBackground")[0].getBoundingClientRect();
+    }else{
+    	var offsetElem = offsetElem.getBoundingClientRect();
+    }
+
+    if(!offsetElem)console.error("No offset element present in getOriginOffset() - tried to default to #canvasBackground but it is not available")
+
+    var bbox = elem.getBoundingClientRect();
+
+    originOffset.width = bbox.width/currZoom;
+    originOffset.height = bbox.height/currZoom;
+    originOffset.x = ((bbox.width/2)/currZoom) + ((bbox.left-offsetElem.left)/currZoom);
+    originOffset.y = ((bbox.height/2)/currZoom) + ((bbox.top-offsetElem.top)/currZoom);
+
+    return originOffset;
+}
+
+
+/*
+	Function lineDistance()
+	Returns the length of line connection 2 points
+*/
+svgedit.utilities.getLineDistance = function(x1,y1,x2,y2) {
+
+	var distance = Math.sqrt((Math.pow((x2-x1), 2))+(Math.pow((y2-y1), 2)));
+
+    return distance;
+}
+
+
 })();

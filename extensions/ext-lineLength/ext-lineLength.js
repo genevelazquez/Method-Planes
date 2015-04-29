@@ -9,6 +9,7 @@
  * Dependencies:
  * 1) jQuery
  * 2) svgcanvas.js
+ * 3) svgutils.js
 
 
 -This extension is split in 5 sections
@@ -96,7 +97,7 @@ var singleSelected; //This gets filled with the single currently selected elemen
         var currentY2 = parseInt(singleSelected[0].getAttributeNS(null,'y2'));
 
         //distance of line is the distance between 2 points formula
-        var distance = Math.sqrt((Math.pow((currentX2-currentX1), 2))+(Math.pow((currentY2-currentY1), 2)));
+        var distance = svgedit.utilities.getLineDistance(currentX1,currentY1,currentX2,currentY2);
 
         $("#lineLength").val(parseInt(distance))
         return parseInt(distance);
@@ -116,7 +117,8 @@ var singleSelected; //This gets filled with the single currently selected elemen
         var currentY1 = parseFloat(singleSelected[0].getAttributeNS(null,'y1'));
         var currentX2 = parseFloat(singleSelected[0].getAttributeNS(null,'x2'));
         var currentY2 = parseFloat(singleSelected[0].getAttributeNS(null,'y2'));
-        var currentDistance = Math.sqrt((Math.pow((currentX2-currentX1), 2))+(Math.pow((currentY2-currentY1), 2)));
+
+        var currentDistance = svgedit.utilities.getLineDistance(currentX1,currentY1,currentX2,currentY2);
 
         if(Math.floor(currentDistance)===Math.floor(newDistance))return false;
 

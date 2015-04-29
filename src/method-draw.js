@@ -443,20 +443,8 @@
 					$('#tool_eyedropper').addClass('tool_button_current').removeClass('tool_button');
 				}
 				svgCanvas.setMode('eyedropper');
-		  }
+		  	}
 
-		   //Addition for defining the extension ext-vectorText.js
-
-		  var setVectorTextMode = function() {
-			  var curr = $('.tool_button_current');
-				if(curr.length && curr[0].id !== 'tool_vectorText') {
-					curr.removeClass('tool_button_current').addClass('tool_button');
-					$('#tool_vectorText').addClass('tool_button_current').removeClass('tool_button');
-				}
-				svgCanvas.setMode('vectorText');
-		  }
-
-		  //End of addition
 			
 			var togglePathEditMode = function(editmode, elems) {
 				$('#tools_bottom_2,#tools_bottom_3').toggle(!editmode);
@@ -1452,7 +1440,7 @@
 				  $("#stroke_panel").show();
 					var elname = elem.nodeName;
 					var angle = svgCanvas.getRotationAngle(elem);
-					$('#angle').val(Math.round(angle));
+					$("#angle").val(Math.round(angle));
 					
 					var blurval = svgCanvas.getBlur(elem);
 					$('#blur').val(blurval);
@@ -1666,18 +1654,18 @@
 			var $reorient = $('#tool_reorient')
 			
 			rotateCursor = function(angle){
-			  var rotate_string = 'rotate('+ angle + 'deg)'
-  			$indicator.css({
-  			  '-webkit-transform': rotate_string,
-  			  '-moz-transform': rotate_string,
-  			  '-o-transform': rotate_string,
-  			  '-ms-transform': rotate_string,
-  			  'transform': rotate_string
-  			});
+				var rotate_string = 'rotate('+ angle + 'deg)'
+	  			$indicator.css({
+	  			  '-webkit-transform': rotate_string,
+	  			  '-moz-transform': rotate_string,
+	  			  '-o-transform': rotate_string,
+	  			  '-ms-transform': rotate_string,
+	  			  'transform': rotate_string
+	  			});
 			}
 			
 			var changeRotationAngle = function(ctl) {
-			  var preventUndo = true;
+			  	var preventUndo = true;
 				svgCanvas.setRotationAngle(ctl.value, preventUndo);
 				rotateCursor(ctl.value)
 				$('#tool_reorient').toggleClass('disabled', ctl.value == 0);
@@ -1752,7 +1740,6 @@
 					return false;
 				}
 				//if (!noUndo) svgCanvas.changeSelectedAttribute(attr, val);
-				console.log(val)
 				svgCanvas.changeSelectedAttributeNoUndo(attr, val);
 			};
 			
@@ -3320,10 +3307,6 @@
 					{key: modKey + 'A', fn: function(){svgCanvas.selectAllInCurrentLayer();}},
 					{key: 'I', fn: function(){setEyedropperMode()}},
 
-					//New addition for extension ext-vectorText.js 
-					{key: 'Y', fn: function(){setVectorTextMode()}},
-					//End of addition
-
 					// Standard shortcuts
 					{key: modKey + 'shift+z', fn: clickRedo},
 					{key: 'esc', fn: minimizeModal}
@@ -3524,7 +3507,7 @@
 			$('#text_x')       .dragInput({ min: null, max: null,  step:  1,  callback: changeAttribute,     cursor: false                         });
 			$('#image_y')      .dragInput({ min: null, max: null,  step:  1,  callback: changeAttribute,     cursor: false                         });
 			$('#rect_rx')      .dragInput({ min: 0,    max: 100,   step:  1,  callback: changeAttribute,    cursor: true                          });
-	    $('#stroke_width') .dragInput({ min: 0,    max: 99,    step:  1,  callback: changeStrokeWidth,   cursor: true, smallStep: 0.1, start: 1.5          });
+	    	$('#stroke_width') .dragInput({ min: 0,    max: 99,    step:  1,  callback: changeStrokeWidth,   cursor: true, smallStep: 0.1, start: 1.5          });
 			$('#angle')        .dragInput({ min: -180, max: 180,   step:  1,  callback: changeRotationAngle, cursor: false, dragAdjust: 0.5      });
 			$('#font_size')    .dragInput({ min: 1, max: 250, step: 1, callback: changeFontSize, cursor: true, stepfunc: stepFontSize, dragAdjust: .15 });
 			$('#group_opacity').dragInput({ min: 0,    max: 100,   step:  5,  callback: changeAttribute,       cursor: true,  start: 100             });

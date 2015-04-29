@@ -643,7 +643,7 @@ html, body {
   top: 20px;
   border-bottom: none;
   overflow: visible;
-  padding: 5px 0 0 15px;
+  padding: 15px 0 0 15px;
 }
 
 .touch  #tools_top {
@@ -2072,7 +2072,7 @@ input[readonly=readonly]:focus {
   display: block;
 }
 
-
+#tool_angle_pivot_indicator,
 #tool_angle_indicator {
   width:         50px;
   height:        50px;
@@ -2083,6 +2083,7 @@ input[readonly=readonly]:focus {
   left: 10px;
 }
 
+#tool_angle_pivot_indicator_cursor,
 #tool_angle_indicator_cursor {
   width:         4px;
   height:        25px;
@@ -2119,3 +2120,41 @@ input[readonly=readonly]:focus {
   display: block;
 }
 
+
+
+/*New CSS for extensions*/
+
+
+.toolBtn{
+  position: relative;
+  height: 32px;
+  line-height: 32px;
+  margin: 0 5px 5px 0;
+
+  border-radius: 3px;
+  color:#4880FF;
+  text-align: center;
+  font-weight: 400;
+  cursor: pointer;
+  background-color:#3F3F3C;
+}
+
+.toolBtn:hover{
+  background-color:#4F4F4C; 
+}
+
+.toolBtnActive{
+  background-color:#5F5F5C; 
+}
+
+.fullToolBtn{
+  clear: both;
+  width: 147px;
+}
+
+.halfToolBtn{
+  position: relative;
+  float:left;
+  width:71px;
+  font-size:12px;
+}

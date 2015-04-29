@@ -5,7 +5,7 @@
 //Remove tools
 
 $(function() {
- $('#tool_cut,#tool_copy,#tool_paste,#tool_move_top,#tool_ellipse,#tool_rect,#tool_move_bottom,#tool_move_up,#tool_move_down,#tool_wireframe, #tool_image,#tool_eyedropper, main_button, #sidepanels,#tool_fhpath,#color_tools,#palette,#tool_snap,#tool_clear,#canvas_panel ').remove();
+ $('#align_tools,#tool_cut,#path_panel,#tool_copy,#tool_paste,#tool_move_top,#tool_angle,#tool_ellipse,#tool_rect,#tool_move_bottom,#tool_move_up,#tool_move_down,#tool_wireframe, #tool_image,#tool_eyedropper, main_button, #sidepanels,#tool_fhpath,#color_tools,#palette,#tool_snap,#tool_clear,#canvas_panel ').remove();
 
  /*Some elements cannot be removed because their values need to be exposed for some Method-Draw function to work. 
  Disable them using CSS visibility and absolutes instead*/
@@ -29,35 +29,6 @@ $(function() {
         if (elems.length > i) return elems.eq(i);
         else return this;
     }
-
-
-
-
- //Add 45 degrees turn tools
-
-  $('#selected_panel').attachToPanelPosition(1).before("<div class='bigBtn' id='rotateR45Btn'>Rotate Left 45°</div>");;
-  $('#selected_panel').attachToPanelPosition(1).before("<div class='bigBtn' id='rotateL45Btn'>Rotate Right 45°</div>");;
-  var customRotationOptions= {
-    'selRotationAngle' : 45,
-    'rotationLimit' : 180
-  }
-
-  $( "#rotateL45Btn" ).click(function() {
-    var currAngle = svgCanvas.getRotationAngle(); 
-    if(currAngle+customRotationOptions.selRotationAngle>customRotationOptions.rotationLimit) return false;
-    svgCanvas.setRotationAngle(currAngle + customRotationOptions.selRotationAngle);
-  });
-
-  $( "#rotateR45Btn" ).click(function() {
-    var currAngle = svgCanvas.getRotationAngle(); 
-    if(currAngle+customRotationOptions.selRotationAngle<(-customRotationOptions.rotationLimit)) return false;
-    svgCanvas.setRotationAngle(currAngle - customRotationOptions.selRotationAngle);
-  });
-
-
-
-
-  $('.bigBtn').css({'position': 'relative','width': '147px','clear':'both','height': '32px','margin-top':'7px','margin-bottom':'4px','background-color': '#3F3F3C','border-radius': '3px','text-align': 'center','line-height': '32px','display': 'block','color': '#4880FF','font-weight': '400','cursor': 'pointer'})
 
 
 
@@ -96,25 +67,10 @@ $(function() {
   }
 
 
-setInterval(function(){
-  disablePlaneHandles()
-},2000);
+  setInterval(function(){
+    disablePlaneHandles()
+  },2000);
 
-
-//Notify Filemaker that editor has finished intial loading
-window.onload = function(){
-
-  $.ajax({
-      type: "get", url: "fmp://localhost/Aircraft%20Parking%20/Demo.fmp12?script=Load%20Complete",
-      success: function (data) {
-          //...
-      },
-      error: function (request, status, error) {
-          console.log(error);
-      }
-  });
-
-}
 
 });
 

@@ -114,11 +114,13 @@ var svgns = "http://www.w3.org/2000/svg",
 	mathns = "http://www.w3.org/1998/Math/MathML";
 
 // Default configuration options
-var curConfig = {
+var curConfig = this.curConfig = {
 	show_outside_canvas: true,
 	selectNew: true,
-	dimensions: [640, 480]
+	dimensions: [640, 480],
+	beamRiding : true
 };
+
 
 // Update config with new one if given
 if(config) {
@@ -289,6 +291,7 @@ var hasMatrixTransform = canvas.hasMatrixTransform = svgedit.math.hasMatrixTrans
 var transformListToTransform = canvas.transformListToTransform = svgedit.math.transformListToTransform;
 var snapToAngle = svgedit.math.snapToAngle;
 var getMatrix = svgedit.math.getMatrix;
+
 
 // initialize from units.js
 // send in an object implementing the ElementContainer interface (see units.js)
@@ -992,25 +995,42 @@ var ffClone = function(elem) {
 }
 
 
-// this.each is deprecated, if any extension used this it can be recreated by doing this:
-// $(canvas.getRootElem()).children().each(...)
+/* 
+-- Function: setRotationAngle() --
 
-// this.each = function(cb) {
-// 	$(svgroot).children().each(cb);
-// };
+- Allows rotation of an element either around it's center or around a pivot point
+- Pivot rotations do not use the regular svg rotate with custom centers command. Instead an emulation is made here,
+  by rotating an element around it's center and moving in certain x,y steps in order to simulate the pivot rotation
 
 
-// Function: setRotationAngle
-// Removes any old rotations if present, prepends a new rotation at the
-// transformed center
-//
-// Parameters:
-// val - The new rotation angle in degrees
-// preventUndo - Boolean indicating whether the action should be undoable or not
-this.setRotationAngle = function(val, preventUndo) {
+Parameters:
+- val : Integer indicating the new rotation angle in degrees
+- preventUndo : Boolean indicating whether the action should be undoable or not
+- byPivot : Boolean indicating whether rotation is by pivot, if not given center rotation is assumed
+- pivotX : Integer indicating The x position of the pivot relative to the canvas
+- pivotY : Integer indicating. The y position of the pivot relative to the canvas
+- specificElem: element object - if provided it overrides the element being rotated from currently selected
+
+*/
+
+this.currentPivotRotation = 0;
+var pivotX = null;
+var pivotY = null;
+this.setRotationAngle = function(val,preventUndo,byPivot,pivotX,pivotY,specificElem) {
+
+	//prevent max rotations
+	if(val>(180)) 
+  		return false;
+ 	if(val<(-180)) 
+  		return false;
+
 	// ensure val is the proper type
-	val = parseFloat(val);
-	var elem = selectedElements[0];
+	if(specificElem){
+		var elem = specificElem;
+	}else{
+		var elem = selectedElements[0];		
+	}
+
 	if (!elem) return;
 	var oldTransform = elem.getAttribute("transform");
 	var bbox = svgedit.utilities.getBBox(elem);
@@ -1024,6 +1044,7 @@ this.setRotationAngle = function(val, preventUndo) {
 			tlist.removeItem(0);
 		}
 	}
+
 	// find R_nc and insert it
 	if (val != 0) {
 		var center = transformPoint(cx,cy,transformListToTransform(tlist).matrix);
@@ -1046,15 +1067,71 @@ this.setRotationAngle = function(val, preventUndo) {
 		elem.setAttribute("transform", oldTransform);
 		changeSelectedAttribute("transform",newTransform,selectedElements);
 		call("changed", selectedElements);
+
 	}
 	var pointGripContainer = getElem("pathpointgrip_container");
-// 		if(elem.nodeName == "path" && pointGripContainer) {
-// 			pathActions.setPointContainerTransform(elem.getAttribute("transform"));
-// 		}
-	var selector = selectorManager.requestSelector(selectedElements[0]);
+
+	var selector = selectorManager.requestSelector(elem);
 	selector.resize();
 	selector.updateGripCursors(val);
+
+
+	//End of regular rotations - now start moving in steps to offset and simulate pivot rotation
+  	if (pivotX == null) {
+  		pivotX = bbox.x;
+		pivotY = bbox.y;
+  	}
+
+	var rad = ((val - svgCanvas.currentPivotRotation) * 3.1415926 / 180)
+
+	var centerx = bbox.width / 2 + bbox.x;
+	var centery = bbox.height / 2 + bbox.y;
+
+
+ 	var step_x = Math.cos(rad) * (centerx - pivotX) - Math.sin(rad) * (centery - pivotY);
+    var step_y = Math.sin(rad) * (centerx - pivotX) + Math.cos(rad) * (centery - pivotY);
+  
+    svgCanvas.currentPivotRotation = val;
+
+    steppingX = (step_x-centerx+pivotX)*current_zoom; 
+    steppingY = (step_y-centery+pivotY)*current_zoom; 
+
+	if(byPivot){
+		svgCanvas.moveSingleElement(elem,steppingX, steppingY, true);
+	}
+
+	svgCanvas.recalculateAllSelectedDimensions();
 };
+
+
+/* 
+-- Function: snapToBeam() --
+
+- Allows calculating x/y movements for mousemove in order for the element to move only along the direction it is facing
+- Uses 'orthogonal projection of point onto a line in 2D' formula: http://de.wikipedia.org/wiki/Orthogonalprojektion#Projektion_auf_eine_Gerade
+
+
+Parameters:
+- elem : The elem we are tracking
+- x1 : X pos of starting point of movement
+- y1 : Y pos of starting point of movement
+- x2 : X pos of ending point of movement
+- y2 : Y pos of ending point of movement
+
+Returns:
+- x,y : vector describing next position as constrained by it's directional line 
+- snapangle : angle of movement
+- return values can be used to move the element accordingly by any function that moves an element
+
+*/
+
+this.snapToBeam = function(elem,x1,y1,x2,y2) {
+	var snapangle = (svgCanvas.getRotationAngle(elem)-90)*(3.14/180); //radians used here
+	var u = {'x':Math.cos(snapangle),'y':Math.sin(snapangle)};
+	var a = (x2-x1) * u.x + (y2-y1) * u.y;
+	return {x: x1+a*u.x, y:y1+a*u.y};
+};
+
 
 // Function: recalculateAllSelectedDimensions
 // Runs recalculateDimensions on the selected elements, 
@@ -2742,7 +2819,7 @@ var getMouseTarget = this.getMouseTarget = function(evt) {
 	var blockTarget = false;
 	var hovering = null;
 
-	
+
 	// in this function we do not record any state changes yet (but we do update
 	// any elements that are still being created, moved or resized on the canvas)
 	var mouseMove = function(evt) {
@@ -2773,10 +2850,10 @@ var getMouseTarget = this.getMouseTarget = function(evt) {
 		evt.preventDefault();
 
 
-		
 		switch (current_mode)
 		{
 			case "select":
+
 				// we temporarily use a translate on the element(s) being dragged
 				// this transform is removed upon mousing up and the element is 
 				// relocated to the new location
@@ -2785,49 +2862,50 @@ var getMouseTarget = this.getMouseTarget = function(evt) {
 					var dx = x - start_x;
 					var dy = y - start_y;
 					
-					if(curConfig.gridSnapping){
-						dx = snapToGrid(dx);
-						dy = snapToGrid(dy);
-					}
+				if(curConfig.gridSnapping){
+					dx = snapToGrid(dx);
+					dy = snapToGrid(dy);
+				}
       	  
-      	  if(evt.shiftKey) { 
-      	    var xya = snapToAngle(start_x,start_y,x,y); x=xya.x; y=xya.y;
-      	 }
-					if (dx != 0 || dy != 0) {
-						var len = selectedElements.length;
-						for (var i = 0; i < len; ++i) {
-							var selected = selectedElements[i];
-							if (selected == null) break;
-//							if (i==0) {
-//								var box = svgedit.utilities.getBBox(selected);
-// 									selectedBBoxes[i].x = box.x + dx;
-// 									selectedBBoxes[i].y = box.y + dy;
-//							}
+		      	if(evt.shiftKey) { 
+		      	    var xya = snapToAngle(start_x,start_y,x,y); x=xya.x; y=xya.y;
+		      	}
 
-							// update the dummy transform in our transform list
-							// to be a translate
-							var xform = svgroot.createSVGTransform();
-							var tlist = getTransformList(selected);
-							// Note that if Webkit and there's no ID for this
-							// element, the dummy transform may have gotten lost.
-							// This results in unexpected behaviour
-							if (xya) {
-							  dx = xya.x - start_x
-							  dy = xya.y - start_y
-							}
-							xform.setTranslate(dx,dy);
-							if(tlist.numberOfItems) {
-								tlist.replaceItem(xform, 0);
-							} else {
-								tlist.appendItem(xform);
-							}
-							
-							// update our internal bbox that we're tracking while dragging
-							selectorManager.requestSelector(selected).resize();
+		      	if(curConfig.beamRiding){ 
+					var xya = svgCanvas.snapToBeam(selectedElements[0],start_x,start_y,x,y); x=xya.x; y=xya.y;
+		      	}
+
+
+				if (dx != 0 || dy != 0) {
+					var len = selectedElements.length;
+					for (var i = 0; i < len; ++i) {
+						var selected = selectedElements[i];
+						if (selected == null) break;
+
+						// update the dummy transform in our transform list
+						// to be a translate
+						var xform = svgroot.createSVGTransform();
+						var tlist = getTransformList(selected);
+						// Note that if Webkit and there's no ID for this
+						// element, the dummy transform may have gotten lost.
+						// This results in unexpected behaviour
+						if (xya) {
+						  dx = xya.x - start_x
+						  dy = xya.y - start_y
 						}
+						xform.setTranslate(dx,dy);
+						if(tlist.numberOfItems) {
+							tlist.replaceItem(xform, 0);
+						} else {
+							tlist.appendItem(xform);
+						}
+						
+						// update our internal bbox that we're tracking while dragging
+						selectorManager.requestSelector(selected).resize();
+					}
 
-        	  //duplicate only once
-        	  // alt drag = create a clone and save the reference							
+        	  		//duplicate only once
+        	  		// alt drag = create a clone and save the reference							
   					if(evt.altKey) {
   					  //clone doesn't exist yet
   					  if (!canvas.addClones) {
